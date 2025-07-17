@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blink Drive Starship Calculator</title>
+<style>
+  body {
+    background: #0a0a1a;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #0055ff99;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #59f;
+    text-shadow: 0 0 8px #59f88;
+  }
+  label {
+    display: block;
+    margin: 0.7rem 0 0.3rem;
+    font-weight: bold;
+  }
+  input[type=number], input[type=range] {
+    width: 100%;
+    padding: 0.3rem 0.5rem;
+    font-size: 1rem;
+    border-radius: 4px;
+    border: none;
+    outline: none;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    background: #222;
+    height: 6px;
+    margin: 0.3rem 0 1rem;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    background: #59f;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .output {
+    background: #111122dd;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 6px;
+    box-shadow: inset 0 0 15px #0044ff44;
+    font-family: monospace;
+    line-height: 1.5;
+  }
+  .footer {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    text-align: center;
+    color: #666;
+  }
+  .highlight {
+    color: #59f;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <h1>Blink Drive Starship Calculator</h1>
+
+  <label for="mass">Ship Mass (kg): <span id="massVal">10000</span></label>
+  <input type="range" id="mass" min="1000" max="50000" step="1000" value="10000" />
+
+  <label for="speed">Target Speed (% of c): <span id="speedVal">10.0</span>%</label>
+  <input type="range" id="speed" min="1" max="50" step="0.1" value="10" />
+
+  <label for="laserPower">Laser Power (TW): <span id="laserPowerVal">15</span></label>
+  <input type="range" id="laserPower" min="1" max="100" step="1" value="15" />
+
+  <label for="distance">Jump Distance (light-years): <span id="distanceVal">4.3</span></label>
+  <input type="number" id="distance" min="0.1" max="100" step="0.1" value="4.3" />
+
+  <div class="output" id="output">
+    Calculating...
+  </div>
+
+<script>
+  const c = 299792458; // speed of light m/s
+  const massSlider = document.getElementById('mass');
+  const speedSlider = document.getElementById('speed');
+  const laserSlider = document.getElementById('laserPower');
+  const distanceInput = document.getElementById('distance');
+  const outputDiv = document.getElementById('output');
+
+  const massVal = document.getElementById('massVal');
+  const speedVal = document.getElementById('speedVal');
+  const laserPowerVal = document.getElementById('laserPowerVal');
+  const distanceVal = document.getElementById('distanceVal');
+
+  function gamma(v) {
+    const beta = v / c;
+    return 1 / Math.sqrt(1 - beta * beta);
+  }
+
+  function formatJoules(J) {
+    if (J > 1e18) return (J / 1e18).toFixed(2) + ' EJ';
+    if (J > 1e15) return (J / 1e15).toFixed(2) + ' PJ';
+    if (J > 1e12) return (J / 1e12).toFixed(2) + ' TJ';
+    if (J > 1e9) return (J / 1e9).toFixed(2) + ' GJ';
+    if (J > 1e6) return (J / 1e6).toFixed(2) + ' MJ';
+    if (J > 1e3) return (J / 1e3).toFixed(2) + ' kJ';
+    return J.toFixed(2) + ' J';
+  }
+
+  function secondsToDHMS(seconds) {
+    const d = Math.floor(seconds / 86400);
+    seconds %= 86400;
+    const h = Math.floor(seconds / 3600);
+    seconds %= 3600;
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${d}d ${h}h ${m}m ${s}s`;
+  }
+
+  function update() {
+    const mass = +massSlider.value;
+    const speedPercent = +speedSlider.value;
+    const speed = (speedPercent / 100) * c;
+    const laserPowerTW = +laserSlider.value;
+    const laserPowerW = laserPowerTW * 1e12;
+    const distanceLY = +distanceInput.value;
+
+    massVal.textContent = mass.toLocaleString();
+    speedVal.textContent = speedPercent.toFixed(1);
+    laserPowerVal.textContent = laserPowerTW;
+    distanceVal.textContent = distanceLY.toFixed(2);
+
+    // Calculate gamma
+    const g = gamma(speed);
+
+    // Energy required E = (gamma-1) * m * c^2 (Joules)
+    const E = (g - 1) * mass * c * c;
+
+    // Charging time in seconds
+    const chargeTimeSec = E / laserPowerW;
+
+    // Waste heat assuming 99.999% efficiency (0.001% waste)
+    const wasteHeatJ = E * 0.00001;
+
+    // Waste power in Watts (waste heat spread over charging time)
+    const wastePowerW = wasteHeatJ / chargeTimeSec;
+
+    // Radiator size estimate using Stefan-Boltzmann law
+    // P = σ A T^4 -> A = P / (σ T^4)
+    // σ = 5.67e-8 W/m²K⁴, assume radiator temp 1500 K (hot tech)
+    const sigma = 5.67e-8;
+    const T = 1500;
+    const radiatorArea = wastePowerW / (sigma * Math.pow(T, 4));
+
+    // Success probability (arbitrary function)
+    let successProb = 90 + 5 * (laserPowerTW / 100) - 3 * ((speedPercent - 10) / 10);
+    if(successProb > 99) successProb = 99;
+    if(successProb < 10) successProb = 10;
+
+    // Output formatting
+    const energyStr = formatJoules(E);
+    const chargeTimeStr = secondsToDHMS(chargeTimeSec);
+    const wastePowerKW = (wastePowerW / 1000).toFixed(2);
+    const radiatorAreaM2 = radiatorArea.toFixed(2);
+    const jumpDistanceKM = (distanceLY * 9.461e12).toExponential(3);
+    const jumpDistanceStr = distanceLY.toFixed(2) + ' light-years';
+
+    outputDiv.innerHTML = `
+      <div><span class="highlight">Energy Required:</span> ${energyStr}</div>
+      <div><span class="highlight">Charging Time:</span> ${chargeTimeStr}</div>
+      <div><span class="highlight">Waste Heat Power:</span> ${wastePowerKW} kW</div>
+      <div><span class="highlight">Radiator Area:</span> ${radiatorAreaM2} m² (at 1500 K)</div>
+      <div><span class="highlight">Jump Distance:</span> ${jumpDistanceStr} (${jumpDistanceKM} km)</div>
+      <div><span class="highlight">Success Probability:</span> ${successProb.toFixed(1)}%</div>
+    `;
+  }
+
+  massSlider.addEventListener('input', update);
+  speedSlider.addEventListener('input', update);
+  laserSlider.addEventListener('input', update);
+  distanceInput.addEventListener('input', update);
+
+  update();
+</script>
+
+<div class="footer">
+  <p>Powered by physics & your vision — stay curious, starfarer.</p>
+</div>
+</body>
+</html>
