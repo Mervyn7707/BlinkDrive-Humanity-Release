@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BlinkDrive Simulator – By Mervyn Jagels</title>
+<style>
+body { font-family: 'Orbitron', sans-serif; background:#0b0f1a; color:#fff; text-align:center; padding:20px; }
+.container { max-width:900px; margin:auto; background:#111; padding:20px; border-radius:12px; box-shadow:0 0 15px #0ff; }
+h1 { color:#00ffcc; font-size:2em; }
+input { width:80%; padding:10px; margin:10px; border:none; border-radius:6px; }
+button { padding:12px 20px; background:#00ffcc; color:#111; font-weight:bold; border:none; border-radius:6px; cursor:pointer; }
+.output { background:#1b1f2a; padding:20px; border-radius:10px; margin-top:20px; text-align:left; }
+img { width:100%; border-radius:10px; margin-top:15px; }
+.manifesto { margin-top:30px; text-align:left; background:#222; padding:20px; border-radius:8px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>BlinkDrive Simulator</h1>
+<p>Author: <strong>Mervyn Jagels</strong></p>
+<p>Enter parameters and simulate your interstellar jump.</p>
+
+<input id="mass" type="number" placeholder="Craft Mass (kg)">
+<input id="distance" type="number" placeholder="Jump Distance (light-years)">
+<input id="power" type="number" placeholder="Laser Power (MW)">
+<button onclick="simulate()">Simulate Jump</button>
+
+<div class="output" id="results"></div>
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Spaceship_art.jpg/800px-Spaceship_art.jpg" alt="BlinkDrive Ship">
+
+<div class="manifesto">
+<h2>BlinkDrive Manifesto</h2>
+<p><strong>Vision:</strong> Humanity’s first quantum-assisted FTL drive for interstellar travel.</p>
+<ul>
+<li>Hybrid CO₂/N₂ propulsion + Laser thermal core</li>
+<li>Photon-based quantum jump system (concept)</li>
+<li>Energy sustainability: Solar + thermal rods</li>
+<li>Goal: Reach Proxima Centauri and build MervynGate Stargate</li>
+</ul>
+<p><em>"Technology belongs to humanity, not corporations."</em></p>
+</div>
+</div>
+
+<script>
+function simulate(){
+ const c = 3e8;
+ const mass = parseFloat(document.getElementById('mass').value);
+ const distLy = parseFloat(document.getElementById('distance').value);
+ const powerMW = parseFloat(document.getElementById('power').value);
+ if(isNaN(mass)||isNaN(distLy)||isNaN(powerMW)){ alert('Enter all values'); return; }
+
+ const speed = 0.1 * c; // 10% light speed
+ const gamma = 1 / Math.sqrt(1 - Math.pow(speed/c,2));
+ const energy = (gamma - 1) * mass * Math.pow(c,2); // J
+ const powerW = powerMW * 1e6;
+ const timeSec = energy / powerW;
+ const days = Math.floor(timeSec / 86400);
+ const hours = Math.floor((timeSec % 86400)/3600);
+ const mins = Math.floor((timeSec % 3600)/60);
+ const prob = Math.min(99.9, 80 + (powerMW/1000000)*10);
+ const distMeters = distLy * 9.461e15;
+
+ document.getElementById('results').innerHTML =
+ `<h3>Simulation Results</h3>
+ <p><strong>Energy Required:</strong> ${(energy/1e15).toFixed(2)} PJ</p>
+ <p><strong>Charging Time:</strong> ${days}d ${hours}h ${mins}m</p>
+ <p><strong>Jump Distance:</strong> ${distMeters.toExponential(2)} m</p>
+ <p><strong>Success Probability:</strong> ${prob.toFixed(1)}%</p>`;
+}
+</script>
+</body>
+</html>
