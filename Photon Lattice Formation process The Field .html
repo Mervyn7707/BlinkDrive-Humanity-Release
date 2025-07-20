@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlinkDrive Photon Lattice Simulator</title>
+<style>
+    body {
+        background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364);
+        color: #00f5ff;
+        font-family: 'Orbitron', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+    }
+    h1 {
+        text-shadow: 0 0 15px #00f5ff;
+    }
+    .blink-logo {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        text-shadow: 0 0 8px #00f5ff;
+    }
+    .container {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 20px;
+        border: 1px solid #00f5ff;
+        border-radius: 10px;
+        width: 400px;
+        box-shadow: 0 0 15px #00f5ff;
+    }
+    label {
+        display: block;
+        margin: 10px 0 5px;
+    }
+    input {
+        width: 100%;
+        padding: 8px;
+        background: #111;
+        border: 1px solid #00f5ff;
+        color: #00f5ff;
+        border-radius: 5px;
+    }
+    .results {
+        margin-top: 20px;
+        padding: 10px;
+        border-top: 1px solid #00f5ff;
+        font-size: 1rem;
+    }
+    canvas {
+        display: block;
+        margin: 20px auto;
+        background: black;
+        border: 1px solid #00f5ff;
+        box-shadow: 0 0 10px #00f5ff;
+    }
+</style>
+</head>
+<body>
+
+<h1>BlinkDrive Lattice Simulator</h1>
+<div class="blink-logo">Project by <strong>Mervyn Jagels</strong></div>
+
+<canvas id="latticeCanvas" width="500" height="500"></canvas>
+
+<div class="container">
+    <label>Ship Mass (kg):</label>
+    <input type="number" id="mass" value="188000">
+    
+    <label>Target Speed (% of c):</label>
+    <input type="number" id="speed" value="0.1" step="0.01">
+    
+    <label>Photon Wavelength (nm):</label>
+    <input type="number" id="wavelength" value="1">
+    
+    <label>Lattice Formation Time (s):</label>
+    <input type="number" id="time" value="300">
+
+    <div class="results">
+        <p><strong>Energy Required:</strong> <span id="energy"></span> J</p>
+        <p><strong>Photon Count:</strong> <span id="photons"></span></p>
+        <p><strong>Power Output:</strong> <span id="power"></span> W</p>
+    </div>
+</div>
+
+<script>
+// Constants
+const h = 6.626e-34; // Planck
+const c = 3e8;
+
+// Calculation
+function calculate() {
+    const mass = parseFloat(document.getElementById('mass').value);
+    const speedPercent = parseFloat(document.getElementById('speed').value);
+    const wavelength = parseFloat(document.getElementById('wavelength').value) * 1e-9;
+    const time = parseFloat(document.getElementById('time').value);
+
+    const v = (speedPercent / 100) * c;
+    const E = 0.5 * mass * Math.pow(v, 2);
+    const photonEnergy = (h * c) / wavelength;
+    const photons = E / photonEnergy;
+    const power = E / time;
+
+    document.getElementById('energy').innerText = E.toExponential(3);
+    document.getElementById('photons').innerText = photons.toExponential(3);
+    document.getElementById('power').innerText = power.toExponential(3);
+}
+document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
+calculate();
+
+// Animation
+const canvas = document.getElementById('latticeCanvas');
+const ctx = canvas.getContext('2d');
+let angle = 0;
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.rotate(0.01);
+    ctx.translate(-canvas.width/2, -canvas.height/2);
+
+    // Draw lattice points
+    for (let i = 0; i < 360; i += 10) {
+        const radius = 150 + 20 * Math.sin(angle + i);
+        const x = 250 + radius * Math.cos(i * Math.PI/180);
+        const y = 250 + radius * Math.sin(i * Math.PI/180);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#00f5ff';
+        ctx.fill();
+    }
+    angle += 0.02;
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
