@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlinkDrive FTL Simulator</title>
+<style>
+    body {
+        background: #0d0d0d;
+        color: #00ffcc;
+        font-family: 'Orbitron', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+    }
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    .container {
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid #00ffcc;
+        border-radius: 12px;
+        padding: 20px;
+        width: 350px;
+        text-align: center;
+        box-shadow: 0 0 20px #00ffcc;
+    }
+    input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #00ffcc;
+        background: #1a1a1a;
+        color: #00ffcc;
+        font-size: 1rem;
+        border-radius: 5px;
+    }
+    button {
+        background: #00ffcc;
+        color: #000;
+        font-size: 1.2rem;
+        padding: 10px 15px;
+        border: none;
+        margin-top: 10px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-weight: bold;
+    }
+    button:hover {
+        background: #00cca3;
+    }
+    .output {
+        margin-top: 15px;
+        text-align: left;
+        font-size: 1rem;
+        color: #fff;
+    }
+    .footer {
+        margin-top: 15px;
+        font-size: 0.8rem;
+        color: #666;
+    }
+</style>
+</head>
+<body>
+<h1>BlinkDrive FTL Simulator</h1>
+<div class="container">
+    <label>Ship Mass (kg):</label><br>
+    <input type="number" id="mass" value="188000"><br>
+    <label>Target Speed (% of c):</label><br>
+    <input type="number" id="speed" value="4"><br>
+    <label>Laser Power (MW):</label><br>
+    <input type="number" id="power" value="150000"><br>
+    <button onclick="calculate()">Simulate Jump</button>
+    <div class="output" id="result"></div>
+</div>
+<div class="footer">Created by Mervyn Jagels | BlinkDrive Project</div>
+
+<script>
+function calculate() {
+    const c = 299792458; // Speed of light (m/s)
+    let mass = parseFloat(document.getElementById('mass').value);
+    let speedPercent = parseFloat(document.getElementById('speed').value);
+    let laserPowerMW = parseFloat(document.getElementById('power').value);
+
+    let v = (speedPercent / 100) * c;
+    let gamma = 1 / Math.sqrt(1 - (v*v)/(c*c));
+    let energyJoules = (gamma - 1) * mass * c * c;
+
+    let laserPowerW = laserPowerMW * 1e6;
+    let chargingTimeSec = energyJoules / laserPowerW;
+    let chargingTimeDays = chargingTimeSec / (3600 * 24);
+
+    // Distance to Proxima Centauri
+    const proximaLY = 4.24;
+    const lightYearsToMeters = 9.461e15;
+    let distanceMeters = proximaLY * lightYearsToMeters;
+    let travelTimeSec = distanceMeters / v;
+    let travelTimeYears = travelTimeSec / (3600 * 24 * 365);
+
+    let successProb = Math.min(99.9, (laserPowerMW / 100000) * 90);
+
+    document.getElementById('result').innerHTML = `
+        <strong>Simulation Results:</strong><br>
+        Target Speed: ${speedPercent}% of c (${v.toExponential(2)} m/s)<br>
+        Energy Required: ${(energyJoules / 1e18).toFixed(2)} EJ<br>
+        Charging Time: ${chargingTimeDays.toFixed(2)} days<br>
+        Distance to Proxima: ${proximaLY} LY<br>
+        Travel Time: ${travelTimeYears.toFixed(2)} years<br>
+        Success Probability: ${successProb.toFixed(1)}%
+    `;
+}
+</script>
+</body>
+</html>
