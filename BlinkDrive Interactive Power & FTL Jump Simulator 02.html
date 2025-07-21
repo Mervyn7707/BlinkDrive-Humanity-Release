@@ -1,0 +1,157 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlinkDrive FTL Simulator</title>
+<style>
+    body {
+        background: #0a0f1c;
+        color: #00eaff;
+        font-family: 'Orbitron', sans-serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    header {
+        padding: 20px;
+        font-size: 2em;
+        color: #00ffc8;
+        border-bottom: 2px solid #00eaff;
+    }
+    .container {
+        width: 90%;
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #111827;
+        border-radius: 15px;
+        box-shadow: 0 0 25px #00eaff88;
+    }
+    h2 {
+        color: #00ffc8;
+        margin-bottom: 10px;
+    }
+    input[type="range"], input[type="number"] {
+        width: 80%;
+        margin: 10px 0;
+    }
+    label {
+        display: block;
+        margin-top: 15px;
+        font-size: 1.2em;
+    }
+    .output-box {
+        margin-top: 20px;
+        padding: 20px;
+        background: #0f172a;
+        border-radius: 10px;
+        text-align: left;
+    }
+    .bar-container {
+        width: 100%;
+        background: #222;
+        border-radius: 10px;
+        margin: 10px 0;
+        height: 25px;
+    }
+    .bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #00eaff, #00ff88);
+        border-radius: 10px;
+        transition: width 0.5s ease-in-out;
+    }
+    .status {
+        margin-top: 15px;
+        font-weight: bold;
+        font-size: 1.3em;
+    }
+    footer {
+        margin-top: 20px;
+        font-size: 0.8em;
+        color: #aaa;
+    }
+</style>
+</head>
+<body>
+<header>🚀 BlinkDrive FTL Simulator – Mervyn Jagels</header>
+<div class="container">
+    <h2>Adjust Parameters</h2>
+    <label>Core Temperature (°C): <span id="tempVal">2500</span></label>
+    <input type="range" id="coreTemp" min="500" max="5000" value="2500">
+
+    <label>Number of Stirling Engines: <span id="engineVal">400</span></label>
+    <input type="range" id="engines" min="50" max="1000" value="400">
+
+    <label>Capacitor Capacity (GJ): <span id="capVal">4500</span></label>
+    <input type="range" id="capacitor" min="500" max="10000" value="4500">
+
+    <label>Target FTL Speed (% of Light): <span id="ftlVal">4</span>%</label>
+    <input type="range" id="ftlSpeed" min="1" max="20" value="4">
+
+    <div class="output-box">
+        <p><strong>Power Output:</strong> <span id="powerOutput">0</span> MW</p>
+        <p><strong>Capacitor Charge:</strong></p>
+        <div class="bar-container"><div class="bar" id="chargeBar"></div></div>
+        <p><strong>Estimated Jump Time:</strong> <span id="jumpTime">0</span> days</p>
+        <div class="status" id="status">Charging...</div>
+    </div>
+</div>
+<footer>Open Source • CC0 License • BlinkDrive Project</footer>
+
+<script>
+    const coreTemp = document.getElementById("coreTemp");
+    const engines = document.getElementById("engines");
+    const capacitor = document.getElementById("capacitor");
+    const ftlSpeed = document.getElementById("ftlSpeed");
+
+    const tempVal = document.getElementById("tempVal");
+    const engineVal = document.getElementById("engineVal");
+    const capVal = document.getElementById("capVal");
+    const ftlVal = document.getElementById("ftlVal");
+
+    const powerOutput = document.getElementById("powerOutput");
+    const chargeBar = document.getElementById("chargeBar");
+    const jumpTime = document.getElementById("jumpTime");
+    const status = document.getElementById("status");
+
+    let currentCharge = 0; // GJ
+
+    function updateSimulator() {
+        let temp = parseFloat(coreTemp.value);
+        let numEngines = parseInt(engines.value);
+        let cap = parseFloat(capacitor.value);
+        let speedPercent = parseFloat(ftlSpeed.value);
+
+        tempVal.textContent = temp;
+        engineVal.textContent = numEngines;
+        capVal.textContent = cap;
+        ftlVal.textContent = speedPercent;
+
+        // Power Calculation (MW)
+        let power = (temp * 0.02) * (numEngines / 100);
+        powerOutput.textContent = power.toFixed(2);
+
+        // Energy needed for FTL
+        let energyNeeded = 4.5e6 * (speedPercent / 100); // GJ scaled
+        let energyPerDay = power * 86.4; // MW → GJ/day
+
+        // Simulate capacitor charge (instant update based on ratio)
+        let chargePercent = Math.min((energyPerDay / energyNeeded) * 100, 100);
+        chargeBar.style.width = chargePercent + "%";
+
+        // Jump Time
+        let timeDays = energyNeeded / energyPerDay;
+        jumpTime.textContent = timeDays.toFixed(1);
+
+        // Status
+        status.textContent = chargePercent >= 100 ? "Ready for Jump!" : "Charging...";
+        status.style.color = chargePercent >= 100 ? "#00ff88" : "#ff4444";
+    }
+
+    document.querySelectorAll("input").forEach(input => input.addEventListener("input", updateSimulator));
+    updateSimulator();
+</script>
+</body>
+</html>
